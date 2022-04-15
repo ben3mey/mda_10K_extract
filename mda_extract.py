@@ -63,7 +63,7 @@ def create_folder(foldername):
         os.mkdir(new_abs_path)
 
 # Execute program
-directory = "C:/Users/bmeyer01/10K/10K"
+directory = "C:/Username/10K" #todo change to your working directory
 foldernames = [x[0] for x in os.walk(directory)]
 for name in foldernames:
     print("="*50)
