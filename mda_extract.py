@@ -1,41 +1,42 @@
 # Goal is to extract MD&A section from 10-K documents
 # Author: Benedict Meyer
-# Date: 22/04/07
+# Date: 22/04/22
 
 import glob
 import os
 import re
 
+
 # Define function to process 10k documents
 def process_file(filename):
     mda = []
     with open(filename, "r") as file:
-        lines = file.readlines()
-    mda_started = False
-    end_of_file = False
-    i = 0
-    num_lines = len(lines)
-    while not mda_started:
-        line = lines[i]
-        if re.match(r"(Item)?\n*?\s*?7\.?:?-?\n*?\s*?management", line.lower(), re.I):
-            mda_started = True
-            i-=1
-        i+=1
-        if i >= num_lines:
-            end_of_file = True
-            break
-
-    if not end_of_file:
-        mda_ended = False
-        while not mda_ended:
-            line = lines[i]
-            mda.append(line)
-            if re.match(r"(Item)?\n*?\s*?8\.?:?-?\n*?\s*?financial", line.lower(), re.I):
-                mda_ended = True
-            i+=1
-            if i >= num_lines:
-                break
+        text = file.read()
+        text = text[6000:]  # start after table of contents
+        item7 = re.search(r"Item?\n*?\s*?(6)?7?\s*?\.?\s*?:?\s*?-*?\n*?\s*?management?\s*?'?(s)?\s*(discussion)",
+                          text, re.I)
+        if item7:
+            mda_begin = item7.span()[0]
+            item8 = re.search \
+                (r"Item?\n*?\s*?(7)?8?\s*?\.?\s*?:?\s*?-*?\n*?\s*?(index)?\s*?(to)?\s*?(consolidated)?\s*?financial\s"
+                 r"*?statements",
+                 text, re.I)
+            if item8:
+                mda_end = item8.span()[0]
+            else:
+                print("Item 8 not found in " + filename)
+                item9 = re.search(r"Item?\n*?\s*?(8)?9?\s*?\.?\s*?:?\s*?-*?\n*?\s*?changes?\s*?in\s*?and",
+                                  text, re.I)
+                if item9:
+                    mda_end = item9.span()[0]
+                else:
+                    print("Item 9 not found either in " + filename)
+        else:
+            print("Item 7 not found in " + filename)
+        if item7 and item8:
+            mda = text[mda_begin:mda_end]
     return mda
+
 
 # Define function to write new mda files
 def process_folder(foldername):
@@ -44,16 +45,16 @@ def process_folder(foldername):
     num_files = len(filenames)
     for i, filename in enumerate(filenames):
         print("processing file {}/{}".format(i, num_files))
-        mda_lines = process_file(filename)
-        if not mda_lines:
+        mda = process_file(filename)
+        if not mda:
             continue
         else:
             new_filename = filename.replace(foldername, foldername + "/mda/")
             new_filename = new_filename.replace(".txt", "_mda.txt")
 
             with open(new_filename, "w") as file:
-                for line in mda_lines:
-                    file.write("%s\n" % line)
+                file.write(mda)
+
 
 # Define function to create new subfolder for mda documents
 def create_folder(foldername):
@@ -62,11 +63,12 @@ def create_folder(foldername):
     if not os.path.exists(new_abs_path):
         os.mkdir(new_abs_path)
 
+
 # Execute program
-directory = "C:/Username/10K" #todo change to your working directory
+directory = "C:/Users/username/yourfolder" #todo Update to your directory necessary
 foldernames = [x[0] for x in os.walk(directory)]
 for name in foldernames:
-    print("="*50)
+    print("=" * 50)
     print(name)
     print("=" * 50)
     process_folder(name)
