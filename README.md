@@ -22,7 +22,7 @@ After finishing the program should have created the subfolders *mda* in the year
 
 ## Branches
 1. Main branch. First attempt, which is based on checking the lines in 10K document. Around 50% accurate. 
-2. Version2 branch. Second attemt, which is based on checking the text file itself and not each line individually. More accurate. Around 75%, since regex is now able to match over several rows. Helpful when item 7 header is not only in one line.
+2. Version2 branch. Second attempt, which is based on checking the text file itself and not each line individually. More accurate. Around 75%, since regex is now able to match over several rows. Helpful when item 7 header is not only in one line.
 
 ## Inquiries
 Please feel free to check my code for your application needs.<br>
