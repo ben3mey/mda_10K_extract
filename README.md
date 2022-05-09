@@ -11,14 +11,14 @@ You can find some aggregated files here: https://sraf.nd.edu/sec-edgar-data/
 Store all your 10-K files in subfolders for the years of the report accordingly.<br>
 These subfolders should be in one folder called e.g., *10K*.<br>
 It should look somehow like this:
-1. 10K
-  1.2. 2000
-    a. *file 1*
-    b. *file 2*
-    c. ...
-  1.3. 2001
-  1.4. 2002
-  1.5. ...
+1. 10K <br>
+  1.2. 2000 <br>
+    a. *file 1* <br>
+    b. *file 2* <br>
+    c. ... <br>
+  1.3. 2001 <br>
+  1.4. 2002 <br>
+  1.5. ... <br>
 Download mda_extract.py and paste it into the folder *10K*.<br>
 
 ## Run program
