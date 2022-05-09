@@ -6,35 +6,48 @@ import glob
 import os
 import re
 
-
 # Define function to process 10k documents
 def process_file(filename):
     mda = []
     with open(filename, "r") as file:
         text = file.read()
-        text = text[6000:]  # start after table of contents
-        item7 = re.search(r"Item?\n*?\s*?(6)?7?\s*?\.?\s*?:?\s*?-*?\n*?\s*?management?\s*?'?(s)?\s*(discussion)",
-                          text, re.I)
-        if item7:
-            mda_begin = item7.span()[0]
-            item8 = re.search \
-                (r"Item?\n*?\s*?(7)?8?\s*?\.?\s*?:?\s*?-*?\n*?\s*?(index)?\s*?(to)?\s*?(consolidated)?\s*?financial\s"
-                 r"*?statements",
-                 text, re.I)
-            if item8:
-                mda_end = item8.span()[0]
-            else:
-                print("Item 8 not found in " + filename)
-                item9 = re.search(r"Item?\n*?\s*?(8)?9?\s*?\.?\s*?:?\s*?-*?\n*?\s*?changes?\s*?in\s*?and",
-                                  text, re.I)
-                if item9:
-                    mda_end = item9.span()[0]
+        # Regex to search for Item 7 as first appearance - probably table of contents
+        item7_toc = re.search(
+            r'Item?\n*?\s*?(6)?7?\s*?\.?\s*?:?\s*?-*?\n*?\s*?management?\s*?(\')?\s*(s)?\s*(discussion)',
+            text, re.I)
+        if item7_toc:
+            # Set start for the search of the heading after the table of content appearance
+            item7_toc_start = item7_toc.span()[1] + 1
+            # Search for the second appearance after toc
+            item7 = re.search(
+                r"Item?\n*?\s*?(6)?7?\s*?\.?\s*?:?\s*?-*?\n*?\s*?management?\s*?(')?\s*(s)?\s*(discussion)",
+                text[item7_toc_start:], re.I)
+            # When both are found that set start of MDA and look for Item 8
+            if item7_toc and item7:
+                item7_chap = item7_toc_start + item7.span()[0]  # position in text von file.read()
+                mda_begin = item7_toc.span()[1] + 1 + item7.span()[0]
+                item8 = re.search(r"Item?\n*?\s*?(7)?8?\s*?\.?\s*?:?\s*?-*?\n*?\s*?(index)?\s*?(to)?\s*?"
+                                  r"(consolidated)?\s*?financial\s*?statements",
+                                  text[item7_chap:], re.I)
+                # When Item 8 is found we can set the end of MDA section and print the MDA document
+                if item8:
+                    mda_end = mda_begin + item8.span()[0]
+                    mda = text[mda_begin:mda_end]
                 else:
-                    print("Item 9 not found either in " + filename)
+                    print("Item 8 not found in " + filename)
+            # This will take action when no second appearance of item 7 is found, so first appearance will be the start
+            else:
+                mda_begin = item7_toc.span()[0]
+                item8 = re.search(r"Item?\n*?\s*?(7)?8?\s*?\.?\s*?:?\s*?-*?\n*?\s*?(index)?\s*?(to)?\s*?"
+                                  r"(consolidated)?\s*?financial\s*?statements",
+                                  text[mda_begin:], re.I)
+                if item8:
+                    mda_end = mda_begin + item8.span()[0]
+                    mda = text[mda_begin:mda_end]
+                else:
+                    print("Item 8 not found in " + filename)
         else:
             print("Item 7 not found in " + filename)
-        if item7 and item8:
-            mda = text[mda_begin:mda_end]
     return mda
 
 
@@ -65,7 +78,7 @@ def create_folder(foldername):
 
 
 # Execute program
-directory = "C:/Users/username/yourfolder" #todo Update to your directory necessary
+directory = "C:/Users/bmeyer01/10K/10K"
 foldernames = [x[0] for x in os.walk(directory)]
 for name in foldernames:
     print("=" * 50)
